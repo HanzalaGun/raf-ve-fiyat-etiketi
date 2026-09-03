@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="tr" dir="ltr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raf ve fiyat etiketi oluşturucu — birim fiyatı kendi hesaplar</title>
+<meta name="description" content="Ürün listesinden mevzuata uygun raf ve fiyat etiketi hazırlar. Birim fiyatı kendi hesaplar, eksik zorunlu alanı söyler. Tarayıcıda çalışır, liste sunucuya gitmez.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230B0B0D'/><rect x='2.5' y='4' width='11' height='8' rx='1' fill='%23FF5A1F'/><rect x='4' y='6' width='5' height='1.2' fill='%230B0B0D'/><rect x='4' y='8.6' width='7.5' height='2' fill='%230B0B0D'/></svg>">
+<link rel="alternate" hreflang="tr" href="./index.html">
+<link rel="alternate" hreflang="en" href="./index.html?dil=en">
+<link rel="alternate" hreflang="ru" href="./index.html?dil=ru">
+<link rel="alternate" hreflang="de" href="./index.html?dil=de">
+<link rel="alternate" hreflang="ar" href="./index.html?dil=ar">
+<link rel="alternate" hreflang="x-default" href="./index.html">
+
+<style>
+:root{
+  --sc-canvas:#0B0B0D; --sc-surface:#131317;
+  --sc-ink:#ECECEE;    --sc-ink-soft:#8B8B96;
+  --sc-accent:#FF5A1F; --sc-accent-ink:#0B0B0D;
+  --sc-hata:#e5484d;
+  --sc-font-display: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --sc-font-text: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hairline: color-mix(in srgb, var(--sc-ink) 13%, transparent);
+  --hairline-2: color-mix(in srgb, var(--sc-ink) 22%, transparent);
+}
+*{box-sizing:border-box}
+input,select,textarea{accent-color:var(--sc-accent)}
+body{margin:0; background:var(--sc-canvas); color:var(--sc-ink);
+  font-family:var(--sc-font-text); font-size:15px; line-height:1.6}
+.sayfa{max-width:980px; margin:0 auto; padding:40px 20px 80px}
+h1{font-family:var(--sc-font-display); font-size:23px; letter-spacing:-.01em; margin:0 0 10px}
+.ozet{color:var(--sc-ink-soft); margin:0 0 6px}
+.ust-bag{font-family:var(--sc-font-display); font-size:11px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--sc-ink-soft); margin:0 0 20px}
+.ust-bag a{color:var(--sc-accent)}
+footer{margin-top:34px; padding-top:18px; border-top:1px solid var(--hairline);
+  font-size:12px; color:var(--sc-ink-soft)}
+footer a{color:var(--sc-accent)}
+.diller{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 26px}
+.diller button{padding:4px 11px; border:1px solid var(--hairline); background:none;
+  color:var(--sc-ink-soft); font-family:var(--sc-font-display); font-size:11px;
+  letter-spacing:.05em; cursor:pointer; border-radius:999px;
+  transition:color .18s, border-color .18s, background .18s}
+.diller button:hover{color:var(--sc-ink); border-color:var(--sc-ink-soft)}
+.diller button[aria-pressed="true"]{color:var(--sc-accent-ink); background:var(--sc-accent);
+  border-color:var(--sc-accent)}
+
+.arac{border:1px solid var(--hairline); background:var(--sc-surface); padding:16px; margin:24px 0}
+.arac input,.arac select{width:100%; background:var(--sc-canvas); border:1px solid var(--hairline);
+  color:var(--sc-ink); padding:8px 10px; font:inherit; font-size:14px}
+.arac input:focus,.arac select:focus{outline:none; border-color:var(--sc-accent)}
+.arac__alanlar{display:flex; flex-wrap:wrap; gap:12px; margin-top:18px}
+.arac__alanlar label{flex:1 1 180px; font-family:var(--sc-font-display); font-size:11px;
+  color:var(--sc-ink-soft); text-transform:uppercase; letter-spacing:.06em}
+.arac__alanlar label span{display:block}
+.arac__alanlar input,.arac__alanlar select{margin-top:6px}
+.arac__onay{display:flex; align-items:center; gap:7px; flex:0 0 auto; align-self:end;
+  padding-bottom:9px; text-transform:none; letter-spacing:0; font-size:13px}
+.arac__onay input{width:auto; margin:0}
+.arac__blok{display:block; font-family:var(--sc-font-display); font-size:11px;
+  letter-spacing:.05em; color:var(--sc-ink-soft); margin-bottom:14px}
+.arac__blok b{color:var(--sc-ink)}
+.arac__blok textarea{width:100%; margin-top:8px; background:var(--sc-canvas);
+  border:1px solid var(--hairline); color:var(--sc-ink); padding:10px; font:inherit;
+  font-family:ui-monospace,monospace; font-size:13px; letter-spacing:0}
+.arac__not{margin-top:10px; font-size:12px; color:var(--sc-ink-soft)}
+ul.arac__uyari{margin:12px 0 0 18px; padding:0}
+ul.arac__uyari li{font-size:13px; color:var(--sc-hata)}
+p.arac__uyari{margin-top:12px; font-size:13px; color:var(--sc-hata)}
+.arac__dugmeler{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; align-items:center}
+.arac__dugmeler button{background:none; border:1px solid var(--hairline-2); color:var(--sc-ink);
+  padding:9px 14px; font:inherit; font-size:12px; cursor:pointer;
+  font-family:var(--sc-font-display); letter-spacing:.04em}
+.arac__dugmeler button:hover:not(:disabled){border-color:var(--sc-accent); color:var(--sc-accent)}
+.arac__dugmeler button:disabled{opacity:.4; cursor:default}
+.arac__sayi{font-family:var(--sc-font-display); font-size:12px; color:var(--sc-ink-soft);
+  margin-inline-end:auto}
+/* Ürün listesi ve ölçüler soldan sağa: fiyat ve barkod rakamları RTL'de ters okunuyor. */
+[dir="rtl"] #ham{direction:ltr; text-align:left}
+[hidden]{display:none !important}
+
+/* ---------- etiketler ----------
+   Ölçüler --et-* değişkenlerinden; kap da etiket genişliğine sabitleniyor —
+   serbest bırakılınca Chrome sayfayı sığdırmak için her şeyi küçültüyor. */
+.raf-kutu{
+  display:grid; grid-template-columns:repeat(var(--et-sutun), var(--et-en));
+  width:calc(var(--et-en) * var(--et-sutun));
+  margin-top:18px; max-height:520px; overflow:auto; direction:ltr;
+}
+.raf-etiket{
+  width:var(--et-en); height:var(--et-boy);
+  border:1px dashed rgba(0,0,0,.25);
+  padding:2.5mm 3mm; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center; gap:0.6mm;
+  background:#fff; color:#111;
+  font-family:var(--sc-font-text);
+}
+.raf-etiket__ad{font-size:2.6mm; line-height:1.25; font-weight:600;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.raf-etiket__fiyat{font-size:7mm; font-weight:800; line-height:1; letter-spacing:-.02em}
+.raf-etiket__eski{font-size:3mm; text-decoration:line-through; opacity:.65}
+.raf-etiket__yuzde{align-self:flex-start; font-size:3mm; font-weight:800;
+  background:#c0182b; color:#fff; padding:0.4mm 1.4mm}
+.raf-etiket__birim{font-size:2.7mm; opacity:.75}
+.raf-etiket__alt{font-size:2.2mm; opacity:.6; margin-top:auto}
+
+/* Düzenler yalnız VURGUYU değiştiriyor, ölçüyü değil: aynı kâğıda basılacak. */
+.raf-etiket[data-duzen="birim"] .raf-etiket__fiyat{font-size:4.4mm}
+.raf-etiket[data-duzen="birim"] .raf-etiket__birim{font-size:5.4mm; font-weight:800; opacity:1}
+.raf-etiket[data-duzen="sade"] .raf-etiket__birim,
+.raf-etiket[data-duzen="sade"] .raf-etiket__alt{display:none}
+.raf-etiket[data-duzen="sade"] .raf-etiket__fiyat{font-size:8mm}
+.raf-etiket[data-duzen="fiyat"] .raf-etiket__eski,
+.raf-etiket[data-duzen="fiyat"] .raf-etiket__yuzde,
+.raf-etiket[data-duzen="birim"] .raf-etiket__yuzde,
+.raf-etiket[data-duzen="sade"] .raf-etiket__eski,
+.raf-etiket[data-duzen="sade"] .raf-etiket__yuzde{display:none}
+
+/* Baskı: sayfada yalnız etiketler kalsın. Her şey kapanıyor, etiket kutusunun
+   ata zinciri :has() ile geri açılıyor — sayfa yapısı değişse de bozulmuyor. */
+@media print{
+  body *{display:none !important}
+  *:has(.baski-alani){display:block !important; border:none !important;
+    background:none !important; padding:0 !important; margin:0 !important}
+  .baski-alani, .baski-alani *{display:revert !important}
+  .baski-alani{display:grid !important; max-height:none !important;
+    overflow:visible !important; margin:0 !important}
+  .raf-etiket{display:flex !important; border:1px solid #ddd}
+  html,body{width:auto !important; min-width:0 !important; margin:0 !important; padding:0 !important}
+  @page{size:A4; margin:0}
+}
+</style>
+
+<body>
+<main class="sayfa">
+  <h1 data-t="h1"></h1>
+  <p class="ozet" data-t="ozet"></p>
+  <p class="ust-bag">
+    <a href="https://hanzala.com.tr/araclar/raf-ve-fiyat-etiketi">hanzala.com.tr</a>
+    · <span data-t="ucretsiz"></span>
+  </p>
+
+  <nav class="diller" id="diller" aria-label="Dil"></nav>
+
+  <div class="arac">
+    <label class="arac__blok">
+      <span id="girdiAnlat"></span>
+      <textarea id="ham" rows="6"></textarea>
+    </label>
+
+    <div class="arac__alanlar">
+      <label><span data-t="duzen"></span><select id="duzen"></select></label>
+      <label><span data-t="tabakaSec"></span><select id="tabaka"></select></label>
+      <label><span data-t="tarih"></span><input id="tarih" type="date"></label>
+      <label class="arac__onay"><input id="birimGoster" type="checkbox" checked> <span data-t="onayBirim"></span></label>
+      <label class="arac__onay"><input id="yerGoster" type="checkbox" checked> <span data-t="onayYer"></span></label>
+    </div>
+
+    <p class="arac__not" data-t="mevzuatNot"></p>
+    <p class="arac__not" data-t="csvNot"></p>
+
+    <ul class="arac__uyari" id="eksikler" hidden></ul>
+    <p class="arac__uyari" id="kirpma" hidden></p>
+
+    <div class="arac__dugmeler">
+      <span class="arac__sayi" id="sayac"></span>
+      <button id="disaAktar" type="button" data-t="disaAktar"></button>
+      <button id="iceAktar" type="button" data-t="iceAktar"></button>
+      <input accept=".csv,text/csv" hidden id="dosya" type="file">
+      <button id="hepsi" type="button" hidden></button>
+      <button id="yazdir" type="button" data-t="yazdir"></button>
+    </div>
+
+    <div class="raf-kutu baski-alani" id="kutu"></div>
+    <p class="arac__not" id="onizlemeNot" hidden></p>
+  </div>
+
+  <footer data-t="altbilgi"></footer>
+</main>
+
+<script>
+/* ---------- diller ----------
+   İKİZİ VAR: bu tablonun karşılığı hanzala.com.tr deposunda
+   `src/utilities/aracMetin.ts` içindeki RAF_METIN — aynı aracın React sürümü
+   oradan besleniyor. Buradaki bir metni değiştirirsen ORAYI DA güncelle. */
+const DILLER = ['tr', 'en', 'ru', 'de', 'ar']
+const RTL = ['ar']
+const DIL_ADI = { tr: 'Türkçe', en: 'English', ru: 'Русский', de: 'Deutsch', ar: 'العربية' }
+const YORE = { tr: 'tr-TR', en: 'en-US', ru: 'ru-RU', de: 'de-DE', ar: 'ar-EG-u-nu-latn' }
+
+const METIN = {
+  "tr": {
+    "baslik": "Raf ve fiyat etiketi oluşturucu — birim fiyatı kendi hesaplar",
+    "aciklama": "Ürün listesinden mevzuata uygun raf ve fiyat etiketi hazırlar. Birim fiyatı kendi hesaplar, eksik zorunlu alanı söyler. Tarayıcıda çalışır, liste sunucuya gitmez.",
+    "h1": "Raf ve fiyat etiketi oluşturucu",
+    "ozet": "Ürün listesini yapıştırın, rafa asılacak fiyat etiketlerini yazdırın. Birim fiyatı araç hesaplıyor ve Fiyat Etiketi Yönetmeliği'nin zorunlu tuttuğu alanlardan eksik olanı söylüyor. Liste tarayıcıdan çıkmıyor.",
+    "ucretsiz": "ücretsiz, üyeliksiz",
+    "altbilgi": "Kaynak kodu MIT lisansı ile açık — istediğiniz gibi kullanın, değiştirin. Bu araç {site} için yazıldı; orada {araclar} da var.",
+    "altSite": "hanzala.com.tr",
+    "altAraclar": "başka ücretsiz araçlar",
+    "girdiAnlat": "Ürünler — her satıra bir ürün: <b>ad · fiyat · miktar · birim · eski fiyat · üretim yeri</b> (sekme, noktalı virgül veya boru ile ayır. Birim: kg, g, L, ml, adet, m. Birim fiyatı araç kendi hesaplıyor.)",
+    "duzen": "Düzen",
+    "duzenler": [
+      "Fiyat baskın",
+      "İndirimli",
+      "Birim fiyat vurgulu",
+      "Sade"
+    ],
+    "tabakaSec": "Etiket tabakası",
+    "tabakaAd": "{g}×{y} mm — {n} etiket",
+    "tarih": "Fiyatın uygulanmaya başladığı tarih",
+    "onayBirim": "birim fiyat",
+    "onayYer": "üretim yeri",
+    "mevzuatNot": "Fiyat Etiketi Yönetmeliği madde 5/2 etikette şunları zorunlu tutuyor: üretim yeri, ayırıcı özellik, tüm vergiler dâhil satış fiyatı, birim fiyat ve fiyatın uygulanmaya başladığı tarih. İndirimde madde 11: indirim öncesi fiyat, indirimli fiyatla birlikte ve okunabilir gösterilir; o fiyat indirimden önceki on gün içinde uygulanan en düşük fiyattır (çabuk bozulan üründe bir önceki fiyat). Hangi fiyatın on günün en düşüğü olduğunu bu araç bilemez — onu siz giriyorsunuz.",
+    "eksikAd": "ad yok",
+    "eksikFiyat": "fiyat okunamadı",
+    "eksikBirim": "birim fiyat hesaplanamadı",
+    "eksikYer": "üretim yeri yok",
+    "adsiz": "(adsız)",
+    "kirpma": "{tavan} etiket basılacak, kalan {kalan} etiket için listeyi bölün.",
+    "sayac": "{n} etiket",
+    "ilkGoster": "ilk {n} tanesini göster",
+    "hepsiniGoster": "hepsini göster ({n})",
+    "yazdir": "yazdır / PDF",
+    "onizlemeNot": "Önizlemede ilk {o} etiket var; yazdırınca {n} etiketin hepsi çıkar.",
+    "disaAktar": "CSV indir",
+    "iceAktar": "CSV yükle",
+    "csvBasliklar": [
+      "ad",
+      "fiyat",
+      "miktar",
+      "birim",
+      "eski fiyat",
+      "üretim yeri"
+    ],
+    "csvNot": "Liste tarayıcıda duruyor, sunucuya gitmiyor — sekmeyi kapatınca kaybolur. Uzun listeyi CSV olarak indirin, sonra aynı dosyayı yükleyip kaldığınız yerden devam edin. Excel bu dosyayı çift tıkla açıyor."
+  },
+  "en": {
+    "baslik": "Shelf and price label maker — it works out the unit price for you",
+    "aciklama": "Turns a product list into shelf and price labels, working out the unit price itself and naming any required field you left blank. Runs in your browser; the list is never sent to a server.",
+    "h1": "Shelf and price label maker",
+    "ozet": "Paste your product list and print the price labels for the shelf. The tool works out the unit price and tells you which of the fields required by Turkish price-label regulation are missing. The list never leaves your browser.",
+    "ucretsiz": "free, no sign-up",
+    "altbilgi": "Source code is open under the MIT licence — use it, change it, sell it. This tool was written for {site}, where there are {araclar} too.",
+    "altSite": "hanzala.com.tr",
+    "altAraclar": "more free tools",
+    "girdiAnlat": "Products — one per line: <b>name · price · amount · unit · old price · place of production</b> (separate with a tab, semicolon or pipe. Units: kg, g, L, ml, adet, m. The tool works out the unit price itself.)",
+    "duzen": "Layout",
+    "duzenler": [
+      "Price first",
+      "On offer",
+      "Unit price first",
+      "Plain"
+    ],
+    "tabakaSec": "Label sheet",
+    "tabakaAd": "{g}×{y} mm — {n} labels",
+    "tarih": "Date the price took effect",
+    "onayBirim": "unit price",
+    "onayYer": "place of production",
+    "mevzuatNot": "Turkey’s price labelling regulation (article 5/2) requires the label to carry: place of production, the distinguishing feature of the goods, the selling price including all taxes, the unit price, and the date the price took effect. For discounts, article 11: the pre-discount price must be shown together with the discounted price and legibly; that price is the lowest one applied in the ten days before the discount (for perishables, the immediately preceding price). This tool cannot know which price was the lowest of those ten days — you enter it.",
+    "eksikAd": "no name",
+    "eksikFiyat": "price unreadable",
+    "eksikBirim": "unit price could not be worked out",
+    "eksikYer": "no place of production",
+    "adsiz": "(unnamed)",
+    "kirpma": "{tavan} labels will be printed; split the list for the remaining {kalan}.",
+    "sayac": "{n} labels",
+    "ilkGoster": "show the first {n}",
+    "hepsiniGoster": "show all ({n})",
+    "yazdir": "print / PDF",
+    "onizlemeNot": "The preview shows the first {o} labels; printing produces all {n}.",
+    "disaAktar": "download CSV",
+    "iceAktar": "load CSV",
+    "csvBasliklar": [
+      "name",
+      "price",
+      "amount",
+      "unit",
+      "old price",
+      "place of production"
+    ],
+    "csvNot": "The list lives in your browser and is never sent to a server — closing the tab loses it. Download a long list as CSV, then load the same file back to carry on where you left off. Excel opens this file on a double click."
+  },
+  "ru": {
+    "baslik": "Генератор полочных ценников — цена за единицу считается сама",
+    "aciklama": "Превращает список товаров в полочные ценники: сам считает цену за единицу и называет незаполненные обязательные поля. Работает в браузере, список никуда не отправляется.",
+    "h1": "Генератор полочных ценников",
+    "ozet": "Вставьте список товаров и распечатайте ценники для полки. Инструмент сам считает цену за единицу и подсказывает, каких обязательных по турецкому регламенту полей не хватает. Список не покидает браузер.",
+    "ucretsiz": "бесплатно, без регистрации",
+    "altbilgi": "Исходный код открыт по лицензии MIT — пользуйтесь, меняйте, продавайте. Инструмент написан для {site}, там есть и {araclar}.",
+    "altSite": "hanzala.com.tr",
+    "altAraclar": "другие бесплатные инструменты",
+    "girdiAnlat": "Товары — по одному в строке: <b>название · цена · количество · единица · старая цена · место производства</b> (разделяйте табуляцией, точкой с запятой или вертикальной чертой. Единицы: kg, g, L, ml, adet, m. Цену за единицу инструмент считает сам.)",
+    "duzen": "Макет",
+    "duzenler": [
+      "Цена крупно",
+      "Со скидкой",
+      "Цена за единицу крупно",
+      "Просто"
+    ],
+    "tabakaSec": "Лист этикеток",
+    "tabakaAd": "{g}×{y} мм — {n} этикеток",
+    "tarih": "Дата начала действия цены",
+    "onayBirim": "цена за единицу",
+    "onayYer": "место производства",
+    "mevzuatNot": "Турецкое положение о ценниках (статья 5/2) требует, чтобы на этикетке были: место производства, отличительный признак товара, цена продажи со всеми налогами, цена за единицу и дата начала действия цены. При скидках статья 11: цена до скидки показывается вместе со скидочной и разборчиво; это самая низкая цена, применявшаяся в течение десяти дней до скидки (для скоропортящихся — предыдущая цена). Какая цена была самой низкой за те десять дней, инструмент знать не может — её вводите вы.",
+    "eksikAd": "нет названия",
+    "eksikFiyat": "цена не читается",
+    "eksikBirim": "цена за единицу не посчитана",
+    "eksikYer": "нет места производства",
+    "adsiz": "(без названия)",
+    "kirpma": "Будет напечатано {tavan} этикеток; для оставшихся {kalan} разделите список.",
+    "sayac": "{n} этикеток",
+    "ilkGoster": "показать первые {n}",
+    "hepsiniGoster": "показать все ({n})",
+    "yazdir": "печать / PDF",
+    "onizlemeNot": "В предпросмотре первые {o} этикеток; при печати выйдут все {n}.",
+    "disaAktar": "скачать CSV",
+    "iceAktar": "загрузить CSV",
+    "csvBasliklar": [
+      "название",
+      "цена",
+      "количество",
+      "единица",
+      "старая цена",
+      "место производства"
+    ],
+    "csvNot": "Список хранится в браузере и на сервер не уходит — при закрытии вкладки он теряется. Длинный список скачайте как CSV, а затем загрузите тот же файл и продолжите с места остановки. Excel открывает этот файл двойным щелчком."
+  },
+  "de": {
+    "baslik": "Regal- und Preisschild-Generator — der Grundpreis wird selbst berechnet",
+    "aciklama": "Macht aus einer Produktliste Regal- und Preisschilder, berechnet den Grundpreis selbst und benennt jedes leer gelassene Pflichtfeld. Läuft im Browser; die Liste wird nicht gesendet.",
+    "h1": "Regal- und Preisschild-Generator",
+    "ozet": "Produktliste einfügen und die Preisschilder fürs Regal drucken. Das Werkzeug berechnet den Grundpreis und sagt Ihnen, welche der von der türkischen Preisauszeichnungsverordnung geforderten Angaben fehlen. Die Liste verlässt den Browser nicht.",
+    "ucretsiz": "kostenlos, ohne Anmeldung",
+    "altbilgi": "Der Quellcode steht unter der MIT-Lizenz — nutzen, ändern, verkaufen. Dieses Werkzeug entstand für {site}; dort gibt es auch {araclar}.",
+    "altSite": "hanzala.com.tr",
+    "altAraclar": "weitere kostenlose Werkzeuge",
+    "girdiAnlat": "Produkte — eines pro Zeile: <b>Name · Preis · Menge · Einheit · alter Preis · Herstellungsort</b> (mit Tabulator, Semikolon oder senkrechtem Strich trennen. Einheiten: kg, g, L, ml, adet, m. Den Grundpreis rechnet das Werkzeug selbst.)",
+    "duzen": "Layout",
+    "duzenler": [
+      "Preis groß",
+      "Im Angebot",
+      "Grundpreis groß",
+      "Schlicht"
+    ],
+    "tabakaSec": "Etikettenbogen",
+    "tabakaAd": "{g}×{y} mm — {n} Etiketten",
+    "tarih": "Datum, ab dem der Preis gilt",
+    "onayBirim": "Grundpreis",
+    "onayYer": "Herstellungsort",
+    "mevzuatNot": "Die türkische Preisauszeichnungsverordnung (Artikel 5/2) verlangt auf dem Etikett: Herstellungsort, unterscheidendes Merkmal der Ware, Verkaufspreis inklusive aller Steuern, Grundpreis und das Datum, ab dem der Preis gilt. Bei Rabatten Artikel 11: der Preis vor dem Rabatt muss zusammen mit dem rabattierten Preis und lesbar gezeigt werden; das ist der niedrigste Preis der zehn Tage vor dem Rabatt (bei verderblicher Ware der unmittelbar vorherige). Welcher Preis der niedrigste dieser zehn Tage war, kann dieses Werkzeug nicht wissen — den tragen Sie ein.",
+    "eksikAd": "kein Name",
+    "eksikFiyat": "Preis unlesbar",
+    "eksikBirim": "Grundpreis nicht berechenbar",
+    "eksikYer": "kein Herstellungsort",
+    "adsiz": "(ohne Namen)",
+    "kirpma": "{tavan} Etiketten werden gedruckt; für die restlichen {kalan} teilen Sie die Liste.",
+    "sayac": "{n} Etiketten",
+    "ilkGoster": "die ersten {n} zeigen",
+    "hepsiniGoster": "alle zeigen ({n})",
+    "yazdir": "drucken / PDF",
+    "onizlemeNot": "Die Vorschau zeigt die ersten {o} Etiketten; gedruckt werden alle {n}.",
+    "disaAktar": "CSV herunterladen",
+    "iceAktar": "CSV laden",
+    "csvBasliklar": [
+      "Name",
+      "Preis",
+      "Menge",
+      "Einheit",
+      "alter Preis",
+      "Herstellungsort"
+    ],
+    "csvNot": "Die Liste liegt im Browser und geht nie an einen Server — beim Schließen des Tabs ist sie weg. Lange Listen als CSV herunterladen und dieselbe Datei später wieder laden, um weiterzumachen. Excel öffnet diese Datei mit einem Doppelklick."
+  },
+  "ar": {
+    "baslik": "مولّد بطاقات الرفّ والسعر — يحسب سعر الوحدة بنفسه",
+    "aciklama": "يحوّل قائمة المنتجات إلى بطاقات رفّ وسعر، يحسب سعر الوحدة بنفسه ويسمّي كل حقل إلزامي تركته فارغًا. يعمل داخل المتصفح ولا تُرسل القائمة إلى خادم.",
+    "h1": "مولّد بطاقات الرفّ والسعر",
+    "ozet": "الصق قائمة المنتجات واطبع بطاقات السعر للرفّ. تحسب الأداة سعر الوحدة وتخبرك بالحقول الناقصة من تلك التي تفرضها لائحة بطاقات الأسعار التركية. القائمة لا تغادر متصفحك.",
+    "ucretsiz": "مجاني، بلا تسجيل",
+    "altbilgi": "الشيفرة المصدرية مفتوحة برخصة MIT — استخدمها وعدّلها وبعها. كُتبت هذه الأداة من أجل {site}، وهناك {araclar} أيضًا.",
+    "altSite": "hanzala.com.tr",
+    "altAraclar": "أدوات مجانية أخرى",
+    "girdiAnlat": "المنتجات — منتج في كل سطر: <b>الاسم · السعر · الكمية · الوحدة · السعر القديم · مكان الإنتاج</b> (افصل بعلامة جدولة أو فاصلة منقوطة أو شرطة رأسية. الوحدات: kg، g، L، ml، adet، m. وسعر الوحدة تحسبه الأداة بنفسها.)",
+    "duzen": "التخطيط",
+    "duzenler": [
+      "السعر بارزًا",
+      "بخصم",
+      "سعر الوحدة بارزًا",
+      "بسيط"
+    ],
+    "tabakaSec": "ورقة البطاقات",
+    "tabakaAd": "{g}×{y} مم — {n} بطاقة",
+    "tarih": "تاريخ بدء سريان السعر",
+    "onayBirim": "سعر الوحدة",
+    "onayYer": "مكان الإنتاج",
+    "mevzuatNot": "لائحة بطاقات الأسعار التركية (المادة 5/2) توجب أن تحمل البطاقة: مكان الإنتاج، والصفة المميّزة للسلعة، وسعر البيع شاملًا كل الضرائب، وسعر الوحدة، وتاريخ بدء سريان السعر. وفي التخفيضات المادة 11: يُعرض السعر قبل الخصم مع السعر المخفَّض وبوضوح؛ وهو أدنى سعر طُبِّق في الأيام العشرة السابقة للخصم (وفي السلع سريعة التلف السعر السابق مباشرة). ولا تستطيع هذه الأداة معرفة أي سعر كان الأدنى في تلك الأيام العشرة — أنت من يُدخله.",
+    "eksikAd": "لا اسم",
+    "eksikFiyat": "السعر غير مقروء",
+    "eksikBirim": "تعذّر حساب سعر الوحدة",
+    "eksikYer": "لا مكان إنتاج",
+    "adsiz": "(بلا اسم)",
+    "kirpma": "ستُطبع {tavan} بطاقة؛ وللباقي {kalan} قسّم القائمة.",
+    "sayac": "{n} بطاقة",
+    "ilkGoster": "اعرض أول {n}",
+    "hepsiniGoster": "اعرض الكل ({n})",
+    "yazdir": "طباعة / PDF",
+    "onizlemeNot": "تعرض المعاينة أول {o} بطاقة؛ وبالطباعة تخرج {n} كلها.",
+    "disaAktar": "تنزيل CSV",
+    "iceAktar": "تحميل CSV",
+    "csvBasliklar": [
+      "الاسم",
+      "السعر",
+      "الكمية",
+      "الوحدة",
+      "السعر القديم",
+      "مكان الإنتاج"
+    ],
+    "csvNot": "القائمة تبقى في متصفحك ولا تُرسل إلى خادم — وبإغلاق التبويب تضيع. نزّل القائمة الطويلة بصيغة CSV ثم حمّل الملف نفسه لتكمل من حيث توقفت. وExcel يفتح هذا الملف بنقرة مزدوجة."
+  }
+}
+
+/** Girilen dili doğrular; tanımadığını Türkçeye düşürür. */
+const dilCoz = (istenen) => (DILLER.includes(istenen) ? istenen : 'tr')
+
+/** '{a}' yer tutucularını doldurur. */
+const doldur = (kalip, d) =>
+  Object.entries(d).reduce((m, [k, v]) => m.replaceAll('{' + k + '}', v), kalip)
+
+/* ---------- ayrıştırma ---------- */
+
+/**
+ * Satırı sütunlara böler.
+ *
+ * Virgül SON çare: Türkçe fiyat "145,90" yazılıyor ve virgülü ayraç saymak
+ * fiyatı 145, miktarı 90 yapardı. Satırda sekme, noktalı virgül veya boru
+ * varsa ayraç odur; yoksa virgüle düşülür.
+ */
+const bol = (satir) => {
+  const ayrac = /[\t;|]/.test(satir) ? /[\t;|]/ : /,/
+  return satir.split(ayrac).map((x) => x.trim())
+}
+
+/**
+ * Türkçe ondalık ayracını kabul eden sayı okuyucu. Geçersizse `null`.
+ *
+ * BOŞ DİZGİ ÖNCE ELENİYOR: `Number('')` sıfır döndürüyor ve
+ * `Number.isFinite(0)` doğru. Bu eleme olmadan boş bırakılan fiyat sessizce
+ * 0 ₺ oluyordu — etikette "0,00 ₺" basılıyor, eksik alan uyarısı da
+ * çıkmıyordu. Fiyatı olmayan ürün ile fiyatı sıfır olan ürün aynı şey değil.
+ */
+const oku = (x) => {
+  const ham = String(x ?? '').trim()
+  if (!ham) return null
+  const n = Number(ham.replace(',', '.'))
+  return Number.isFinite(n) ? n : null
+}
+
+/** Gram ve mililitre kilo ve litreye çevriliyor: "0,045 ₺/g" kimseye bir şey
+    anlatmıyor, "360,00 ₺/kg" anlatıyor. */
+const OLCEK = {
+  adet: { carpan: 1, goster: 'adet' },
+  g: { carpan: 0.001, goster: 'kg' },
+  kg: { carpan: 1, goster: 'kg' },
+  l: { carpan: 1, goster: 'L' },
+  lt: { carpan: 1, goster: 'L' },
+  m: { carpan: 1, goster: 'm' },
+  ml: { carpan: 0.001, goster: 'L' },
+}
+
+const DUZENLER = ['fiyat', 'indirim', 'birim', 'sade']
+/** Hazır tabaka ölçüleri — barkod aracıyla aynı kâğıtlar. */
+const TABAKA = [
+  { g: 70, satir: 8, sutun: 3, y: 37 },
+  { g: 105, satir: 8, sutun: 2, y: 37 },
+  { g: 52.5, satir: 10, sutun: 4, y: 29.7 },
+  { g: 105, satir: 4, sutun: 2, y: 74 },
+]
+const ONIZLEME = 20
+const TAVAN = 400
+
+const ayikla = (ham) =>
+  ham.split('\n').map((s) => s.trim()).filter(Boolean).map((s) => {
+    const p = bol(s)
+    return {
+      ad: p[0] || '',
+      birim: (p[3] || 'adet').toLowerCase(),
+      eski: oku(p[4] || ''),
+      fiyat: oku(p[1] || ''),
+      miktar: oku(p[2] || ''),
+      yer: p[5] || '',
+    }
+  })
+
+/** Birim fiyat: satış fiyatı ÷ net miktar, kg/L/adet cinsinden. */
+const birimFiyat = (s) => {
+  const o = OLCEK[s.birim]
+  if (!o || s.fiyat == null || !s.miktar) return null
+  const net = s.miktar * o.carpan
+  if (net <= 0) return null
+  return { birim: o.goster, deger: s.fiyat / net }
+}
+
+const indirimYuzde = (s) =>
+  s.eski && s.fiyat != null && s.eski > s.fiyat
+    ? Math.round(((s.eski - s.fiyat) / s.eski) * 100)
+    : null
+
+/* ---------- CSV ----------
+   Neden CSV, neden .xlsx değil: Excel .csv'yi çift tıkla açıyor, kullanıcı
+   açısından fark yok. .xlsx ise ZIP açıp XML okuyan yabancı bir kütüphane
+   demek — bu araç "veri tarayıcıdan çıkmıyor" sözü üzerine kurulu, oraya bir
+   ayrıştırıcı sokmak hem paketi büyütür hem saldırı yüzeyi açar. */
+
+/**
+ * CSV ENJEKSİYONU koruması.
+ *
+ * `=`, `+`, `-`, `@` ile başlayan hücreyi Excel ve LibreOffice FORMÜL sayıyor.
+ * Dışa aktarılan dosya başkasına gidebiliyor; `=cmd|' /c calc'!A1` gibi bir
+ * ürün adı karşı tarafta çalışabilir. Tek tırnak öneki hücreyi metne
+ * kilitliyor ve Excel onu göstermiyor; okurken geri alınıyor.
+ */
+const hucre = (x) => {
+  const ham = String(x ?? '')
+  const tehlikeli = /^[=+\-@\t\r]/.test(ham)
+  const deger = tehlikeli ? `'${ham}` : ham
+  return /[",\n\r]/.test(deger) ? `"${deger.replace(/"/g, '""')}"` : deger
+}
+
+const csvYaz = (basliklar, satirlar) =>
+  [basliklar, ...satirlar].map((s) => s.map(hucre).join(',')).join('\r\n')
+
+/**
+ * CSV'yi satır/sütun dizisine çevirir.
+ *
+ * Tırnak içindeki virgül ve satır sonu ayraç DEĞİL — karakter karakter
+ * okumanın sebebi bu. `split(',')` tırnaklı bir açıklamayı ikiye bölerdi.
+ */
+const csvOku = (metin) => {
+  const satirlar = []
+  let satir = []
+  let hucreIci = ''
+  let tirnakta = false
+  const s = metin.replace(/^﻿/, '')
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (tirnakta) {
+      if (c === '"') {
+        if (s[i + 1] === '"') { hucreIci += '"'; i++ } else tirnakta = false
+      } else hucreIci += c
+      continue
+    }
+    if (c === '"') { tirnakta = true; continue }
+    if (c === ',' || c === ';' || c === '\t') { satir.push(hucreIci); hucreIci = ''; continue }
+    if (c === '\n') {
+      satir.push(hucreIci); hucreIci = ''
+      if (satir.some((x) => x.trim())) satirlar.push(satir)
+      satir = []
+      continue
+    }
+    if (c === '\r') continue
+    hucreIci += c
+  }
+  satir.push(hucreIci)
+  if (satir.some((x) => x.trim())) satirlar.push(satir)
+  // Dışa aktarırken koyduğumuz tek tırnak öneki geri alınıyor.
+  return satirlar.map((r) => r.map((x) => x.replace(/^'/, '').trim()))
+}
+
+/** Tarayıcıda indirme. Sunucuya hiçbir şey gitmiyor. */
+const csvIndir = (ad, icerik) => {
+  // BOM: Excel Türkçe karakterleri UTF-8 olarak ancak bununla tanıyor,
+  // yoksa "Zeytinyağı" -> "ZeytinyaÄŸÄ±" oluyor.
+  const b = new Blob(['﻿' + icerik], { type: 'text/csv;charset=utf-8' })
+  const u = URL.createObjectURL(b)
+  const a = document.createElement('a')
+  a.download = ad
+  a.href = u
+  a.click()
+  URL.revokeObjectURL(u)
+}
+
+/* ---- kendi kendini sınama: index.html?test=1 ---- */
+// Async: BOM sınaması Blob'u okuyor. Klasik betikte üst düzey await yok,
+// o yüzden kendi kendini çağıran async sarmal.
+if (new URLSearchParams(location.search).has('test')) (async () => {
+  const esit = (a, b, ad) => {
+    const ok = JSON.stringify(a) === JSON.stringify(b)
+    if (!ok) { document.title = 'HATA: ' + ad; console.error('KALDI', ad, a, b); throw new Error(ad) }
+    console.log('gecti', ad, a)
+  }
+  // Boş dizgi tuzağı: Number('') sıfır, isFinite(0) doğru.
+  esit(oku(''), null, 'boş fiyat null')
+  esit(oku('0'), 0, 'sıfır fiyat sıfır')
+  esit(oku('145,90'), 145.9, 'virgüllü ondalık')
+  esit(oku('abc'), null, 'sayı olmayan null')
+  // Birim fiyat: 500 g / 180 ₺ -> 360 ₺/kg
+  esit(birimFiyat({ birim: 'g', fiyat: 180, miktar: 500 }), { birim: 'kg', deger: 360 }, 'gram kiloya çevriliyor')
+  esit(birimFiyat({ birim: 'ml', fiyat: 240, miktar: 500 }), { birim: 'L', deger: 480 }, 'mililitre litreye çevriliyor')
+  esit(birimFiyat({ birim: 'adet', fiyat: 12, miktar: 3 }), { birim: 'adet', deger: 4 }, 'adet birim fiyatı')
+  esit(birimFiyat({ birim: 'g', fiyat: 180, miktar: 0 }), null, 'sıfır miktarda hesap yok')
+  esit(birimFiyat({ birim: 'kutu', fiyat: 10, miktar: 1 }), null, 'bilinmeyen birim')
+  esit(indirimYuzde({ eski: 280, fiyat: 240 }), 14, 'indirim yüzdesi')
+  esit(indirimYuzde({ eski: 200, fiyat: 240 }), null, 'zam indirim değil')
+  // CSV ENJEKSİYONU: formül olabilecek hücre tek tırnakla kilitleniyor.
+  // Asıl güvenlik özelliği ÖNEK: hücre tek tırnakla başlıyorsa Excel onu
+  // formül değil metin sayıyor. Tırnakla sarmalama ayrı bir mesele (virgül,
+  // çift tırnak, satır sonu varsa gerekiyor) ve burada gerekmiyor.
+  const kilitli = (x) => csvYaz(['ad'], [[x]]).split('\r\n')[1].startsWith("'")
+  esit(kilitli('=cmd|\' /c calc\'!A1'), true, 'formül hücresi kilitlendi')
+  esit(kilitli('@SUM(1)'), true, 'at işaretli hücre kilitlendi')
+  esit(kilitli('-5'), true, 'eksiyle başlayan hücre kilitlendi')
+  esit(kilitli('+1'), true, 'artıyla başlayan hücre kilitlendi')
+  esit(kilitli('Zeytinyağı'), false, 'zararsız hücreye dokunulmuyor')
+  esit(csvYaz(['ad'], [['Zeytinyağı']]), 'ad\r\nZeytinyağı', 'zararsız hücre olduğu gibi')
+  esit(csvYaz(['ad'], [['a,b']]), 'ad\r\n"a,b"', 'virgüllü hücre tırnaklanıyor')
+  // Gidiş-dönüş: yazılan CSV geri okunduğunda aynı veri çıkmalı.
+  const veri = [['Zeytinyağı 1 L', '240', '1', 'L', '280', 'Ayvalık'], ['=zararlı', '5', '1', 'adet', '', '']]
+  esit(csvOku(csvYaz(['a', 'b', 'c', 'd', 'e', 'f'], veri)).slice(1), veri, 'CSV gidiş-dönüş')
+  esit(csvOku('﻿ad,fiyat\r\nÇay,20')[0], ['ad', 'fiyat'], 'BOM ayrıştırmada yutuluyor')
+  // Ayraç seçimi
+  esit(ayikla('Çay\t20\t100\tg')[0].fiyat, 20, 'sekme ayracı')
+  esit(ayikla('Çay,20,100,g')[0].miktar, 100, 'virgül ayracı')
+  esit(dilCoz('de'), 'de', 'bilinen dil')
+  esit(dilCoz('fr'), 'tr', 'bilinmeyen dil Türkçeye düşüyor')
+  const anahtar = Object.keys(METIN.tr).sort()
+  DILLER.forEach((d) => {
+    esit(Object.keys(METIN[d]).sort(), anahtar, d + ' anahtarları tam')
+    esit(METIN[d].duzenler.length, DUZENLER.length, d + ' düzen adları tam')
+    esit(METIN[d].csvBasliklar.length, 6, d + ' CSV başlıkları tam')
+  })
+  // BOM bayt düzeyinde: EF BB BF olmadan Excel UTF-8'i tanımıyor ve
+  // "Zeytinyağı" -> "ZeytinyaÄŸÄ±" oluyor. Blob'u okuyup ilk üç baytı ölçüyoruz.
+  const bayt = new Uint8Array(await new Blob(['\ufeff' + 'ad\r\nZeytinyağı'],
+    { type: 'text/csv;charset=utf-8' }).arrayBuffer())
+  esit([bayt[0], bayt[1], bayt[2]], [0xEF, 0xBB, 0xBF], 'CSV çıktısı BOM ile başlıyor')
+  console.log('tüm sınamalar geçti')
+})()
+
+/* ---------- arayüz ---------- */
+const $ = (id) => document.getElementById(id)
+const ham = $('ham'), kutu = $('kutu')
+let dil = dilCoz(new URLSearchParams(location.search).get('dil') || navigator.language?.slice(0, 2))
+let hepsiniGoster = false
+let hamDokunuldu = false
+let kirli = false
+const t = () => METIN[dil]
+const para = (n) => n.toLocaleString(YORE[dil], { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+const olcu = (n) => n.toLocaleString(YORE[dil])
+
+const ORNEK =
+  'Zeytinyağı 1 L\t240\t1\tL\t280\tAyvalık\n' +
+  'Beyaz peynir\t180\t500\tg\t\tTrakya\n' +
+  'Türk kahvesi 100 g\t45\t100\tg\t\tİzmir'
+
+$('duzen').innerHTML = DUZENLER.map((d) => `<option value="${d}"></option>`).join('')
+$('tabaka').innerHTML = TABAKA.map((_, i) => `<option value="${i}"></option>`).join('')
+
+DILLER.forEach((d) => {
+  const b = document.createElement('button')
+  b.type = 'button'; b.textContent = DIL_ADI[d]; b.lang = d
+  b.onclick = () => { dil = d; uygulaDil(); ciz() }
+  $('diller').append(b)
+})
+
+/* Kaydedilmemiş değişiklik uyarısı.
+   Bin ürün girip sekmeyi kapatan kullanıcı her şeyi kaybediyordu — veri
+   tarayıcıdan çıkmıyor, yani kurtaracak bir sunucu kopyası da yok. Tarayıcı
+   kendi metnini gösteriyor, bizimki yok sayılıyor; yine de returnValue yazmak
+   ŞART, yoksa uyarı hiç çıkmıyor. */
+window.addEventListener('beforeunload', (e) => {
+  if (!kirli) return
+  e.preventDefault()
+  e.returnValue = ''
+})
+
+function uygulaDil() {
+  const m = t()
+  document.documentElement.lang = dil
+  document.documentElement.dir = RTL.includes(dil) ? 'rtl' : 'ltr'
+  document.title = m.baslik
+  document.querySelector('meta[name=description]').content = m.aciklama
+  document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = m[e.dataset.t] })
+  // Girdi anlatımında kalın yazılmış sütun adları var, o yüzden innerHTML.
+  $('girdiAnlat').innerHTML = m.girdiAnlat
+  if (!hamDokunuldu) ham.value = ORNEK
+  $('duzen').querySelectorAll('option').forEach((o, i) => { o.textContent = m.duzenler[i] })
+  $('tabaka').querySelectorAll('option').forEach((o, i) => {
+    const x = TABAKA[i]
+    o.textContent = doldur(m.tabakaAd, { g: olcu(x.g), y: olcu(x.y), n: x.sutun * x.satir })
+  })
+  $('diller').querySelectorAll('button')
+    .forEach((b, i) => b.setAttribute('aria-pressed', String(DILLER[i] === dil)))
+
+  const bag = (yol, yazi) => `<a href="https://hanzala.com.tr${yol}">${yazi}</a>`
+  document.querySelector('footer').innerHTML = m.altbilgi
+    .replace('{site}', bag('', m.altSite))
+    .replace('{araclar}', bag('/araclar', m.altAraclar))
+
+  const u = new URL(location.href)
+  dil === 'tr' ? u.searchParams.delete('dil') : u.searchParams.set('dil', dil)
+  history.replaceState(null, '', u)
+}
+
+function ciz() {
+  const m = t()
+  const duzen = $('duzen').value
+  const tabaka = TABAKA[Number($('tabaka').value) || 0]
+  const birimGoster = $('birimGoster').checked
+  const yerGoster = $('yerGoster').checked
+  const tarih = $('tarih').value
+  const satirlar = ayikla(ham.value)
+
+  /* Zorunlu alan denetimi. Araç etiketi yine de basıyor — eksik bilgiyle
+     baskıyı engellemek işletmeyi çıkmaza sokar; uyarıp bırakmak doğrusu. */
+  const eksikler = satirlar.map((s) => {
+    const e = []
+    if (!s.ad) e.push(m.eksikAd)
+    if (s.fiyat == null) e.push(m.eksikFiyat)
+    if (birimGoster && !birimFiyat(s)) e.push(m.eksikBirim)
+    if (yerGoster && !s.yer) e.push(m.eksikYer)
+    return e.length ? { ad: s.ad || m.adsiz, e } : null
+  }).filter(Boolean)
+
+  const kac = (x) => String(x).replace(/</g, '&lt;')
+  $('eksikler').hidden = !eksikler.length
+  $('eksikler').innerHTML = eksikler.slice(0, 6)
+    .map((x) => `<li>${kac(x.ad)}: ${x.e.join(', ')}</li>`).join('')
+
+  const kirpildi = Math.max(0, satirlar.length - TAVAN)
+  const etiketler = satirlar.slice(0, TAVAN)
+  $('kirpma').hidden = !kirpildi
+  $('kirpma').textContent = kirpildi ? doldur(m.kirpma, { tavan: TAVAN, kalan: kirpildi }) : ''
+
+  $('sayac').textContent = doldur(m.sayac, { n: etiketler.length })
+  $('hepsi').hidden = etiketler.length <= ONIZLEME
+  $('hepsi').textContent = hepsiniGoster
+    ? doldur(m.ilkGoster, { n: ONIZLEME })
+    : doldur(m.hepsiniGoster, { n: etiketler.length })
+  $('yazdir').disabled = !etiketler.length
+  $('disaAktar').disabled = !satirlar.length
+  $('onizlemeNot').hidden = !(etiketler.length > ONIZLEME && !hepsiniGoster)
+  $('onizlemeNot').textContent = doldur(m.onizlemeNot, { o: ONIZLEME, n: etiketler.length })
+
+  kutu.style.setProperty('--et-en', tabaka.g + 'mm')
+  kutu.style.setProperty('--et-boy', tabaka.y + 'mm')
+  kutu.style.setProperty('--et-sutun', String(tabaka.sutun))
+
+  const gorunen = hepsiniGoster ? etiketler : etiketler.slice(0, ONIZLEME)
+  kutu.replaceChildren(...gorunen.map((s) => {
+    const el = document.createElement('div')
+    el.className = 'raf-etiket'
+    el.dataset.duzen = duzen
+    const bf = birimGoster ? birimFiyat(s) : null
+    const yuzde = indirimYuzde(s)
+    const alt = [yerGoster && s.yer ? s.yer : '', tarih || ''].filter(Boolean).join(' · ')
+    el.innerHTML =
+      `<span class="raf-etiket__ad">${kac(s.ad)}</span>` +
+      (duzen === 'indirim' && s.eski != null ? `<span class="raf-etiket__eski">${para(s.eski)} ₺</span>` : '') +
+      `<span class="raf-etiket__fiyat">${s.fiyat == null ? '—' : para(s.fiyat) + ' ₺'}</span>` +
+      (duzen === 'indirim' && yuzde != null ? `<span class="raf-etiket__yuzde">%${yuzde}</span>` : '') +
+      (bf ? `<span class="raf-etiket__birim">${para(bf.deger)} ₺/${bf.birim}</span>` : '') +
+      `<span class="raf-etiket__alt">${kac(alt)}</span>`
+    return el
+  }))
+}
+
+$('disaAktar').onclick = () => {
+  const satirlar = ayikla(ham.value)
+  csvIndir('raf-etiketleri.csv', csvYaz([...t().csvBasliklar], satirlar.map((x) => [
+    x.ad,
+    x.fiyat == null ? '' : String(x.fiyat).replace('.', ','),
+    x.miktar == null ? '' : String(x.miktar).replace('.', ','),
+    x.birim,
+    x.eski == null ? '' : String(x.eski).replace('.', ','),
+    x.yer,
+  ])))
+  kirli = false
+}
+$('iceAktar').onclick = () => $('dosya').click()
+$('dosya').onchange = async (e) => {
+  const f = e.target.files?.[0]
+  if (!f) return
+  const tablo = csvOku(await f.text())
+  /* Başlık satırı varsa atlanıyor: ikinci sütun sayıya çevrilemiyorsa o satır
+     başlıktır. */
+  const govde = tablo.length > 1 && oku(tablo[0][1] ?? '') == null ? tablo.slice(1) : tablo
+  ham.value = govde.map((r) => r.join('\t')).join('\n')
+  hamDokunuldu = true
+  kirli = true
+  e.target.value = ''
+  ciz()
+}
+$('hepsi').onclick = () => { hepsiniGoster = !hepsiniGoster; ciz() }
+$('yazdir').onclick = () => window.print()
+ham.addEventListener('input', () => { hamDokunuldu = true; kirli = true })
+document.querySelectorAll('#ham, #duzen, #tabaka, #tarih, #birimGoster, #yerGoster')
+  .forEach((e) => e.addEventListener('input', ciz))
+
+uygulaDil()
+ciz()
+</script>
