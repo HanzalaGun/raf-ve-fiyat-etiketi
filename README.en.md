@@ -76,6 +76,15 @@ printing white would make the whole colour choice pointless.
 
 <br>
 
+## Sibling tool
+
+If you only need barcodes, that is a separate tool:
+[**barcode generator (A4 label printing)**](https://github.com/HanzalaGun/barkod-etiket-olusturucu)
+— EAN-13 and Code 128, it works out the check digit for you. That tool is for
+the code that gets scanned; this one is for the price that gets read.
+
+<br>
+
 ## Input format
 
 One product per line, columns separated by a **tab**, **semicolon** or **pipe**:

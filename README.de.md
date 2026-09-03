@@ -79,6 +79,15 @@ weiß gedruckt wird, machte die ganze Farbwahl sinnlos.
 
 <br>
 
+## Schwesterwerkzeug
+
+Wenn Sie nur Barcodes brauchen, ist das ein eigenes Werkzeug:
+[**Barcode-Generator (A4-Etikettendruck)**](https://github.com/HanzalaGun/barkod-etiket-olusturucu)
+— EAN-13 und Code 128, die Prüfziffer wird selbst berechnet. Dort geht es um
+den Code, der gescannt wird; hier um den Preis, der gelesen wird.
+
+<br>
+
 ## Eingabeformat
 
 Ein Produkt je Zeile, Spalten getrennt durch **Tabulator**, **Semikolon** oder

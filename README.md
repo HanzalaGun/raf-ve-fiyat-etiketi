@@ -74,6 +74,15 @@ beyaz basılması aracın renk seçimini anlamsız kılardı.
 
 <br>
 
+## Kardeş araç
+
+Sadece barkod basacaksanız o ayrı bir araç:
+[**barkod oluşturucu (A4 etiket baskısı)**](https://github.com/HanzalaGun/barkod-etiket-olusturucu)
+— EAN-13 ve Code 128, kontrol hanesini kendi hesaplıyor. Orada kod okutulur,
+burada fiyat okunur.
+
+<br>
+
 ## Giriş biçimi
 
 Her satıra bir ürün, sütunlar **sekme**, **noktalı virgül** veya **boru** ile:
