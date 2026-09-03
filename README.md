@@ -46,6 +46,34 @@ Gram ve mililitre önce kilo ve litreye çevriliyor:
 
 <br>
 
+## Etiket rengi
+
+Beyaz, **sarı** (indirim), **kırmızı** (son fırsat), yeşil, turuncu — ya da
+kendi renginiz. Perakendede renk bilgi taşıyor, süs değil.
+
+**Yazı rengi ölçümle seçiliyor, göz kararıyla değil.** Zemin için siyah ve
+beyazın WCAG kontrast oranı hesaplanıp yüksek olan kullanılıyor; sarı zeminde
+siyah, koyu yeşilde beyaz çıkıyor. Parlaklık eşiğiyle karar vermek orta
+tonlarda yanlış tarafı seçiyor.
+
+Bunun ölçülmüş bir garantisi var: **hangi rengi seçerseniz seçin yazı/zemin
+kontrastı en az 4,5:1** kalıyor. En kötü durum 4,59 ve `#008900` zemininde
+çıkıyor — 256 adımlık tam tarama sınamada koşuyor. Ekranda gösterilen oran
+7:1'in altındaysa araç bunu söylüyor; rafta bir metre uzaktan, değişken market
+ışığında okunan bir etiket için anlamlı ayrım orada.
+
+İndirim rozeti de zemine uyuyor: perakende kırmızısı mümkünse korunuyor, ama
+kırmızı etikette kaybolacağı için orada ters çevriliyor.
+
+Madde 9/1 etiketin **okunabilir** olmasını istiyor — yani kontrast uyum
+meselesi, dekorasyon değil.
+
+Renkli zemin **baskıda da korunuyor**: tarayıcılar zemin rengini varsayılan
+olarak atıyor, `print-color-adjust: exact` ile açıkça isteniyor. Sarı etiketin
+beyaz basılması aracın renk seçimini anlamsız kılardı.
+
+<br>
+
 ## Giriş biçimi
 
 Her satıra bir ürün, sütunlar **sekme**, **noktalı virgül** veya **boru** ile:
@@ -112,7 +140,8 @@ da çalışır.
 
 `index.html?test=1` adresini açın. Boş/sıfır fiyat ayrımı, birim çevrimleri,
 indirim yüzdesi, CSV enjeksiyonu koruması, CSV gidiş-dönüşü, BOM'un bayt
-düzeyinde varlığı ve beş dilin çeviri tablosu sınanıyor. Biri kalırsa sekme
+düzeyinde varlığı, kontrast hesabı, her zeminde yazı renginin AA'yı tutması
+(256 adımlık tam tarama) ve beş dilin çeviri tablosu sınanıyor. Biri kalırsa sekme
 başlığı `HATA:` olur.
 
 <br>

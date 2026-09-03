@@ -48,6 +48,34 @@ Grams and millilitres are converted to kilos and litres first:
 
 <br>
 
+## Label colour
+
+White, **yellow** (sale), **red** (clearance), green, orange — or your own
+colour. In retail a colour carries information; it is not decoration.
+
+**The text colour is chosen by measurement, not by eye.** The WCAG contrast
+ratio of both black and white against the background is computed and the higher
+one wins — black on yellow, white on dark green. Deciding by a luminance
+threshold picks the wrong side in the mid tones.
+
+There is a measured guarantee behind it: **whatever colour you pick, the
+text-to-background contrast stays at or above 4.5:1**. The worst case is 4.59,
+on a `#008900` background — a full 256-step sweep runs in the self-check. If the
+displayed ratio is below 7:1 the tool says so; that is the meaningful line for a
+label read from a metre away under variable store lighting.
+
+The discount badge adapts too: the retail red is kept where it can be, and
+inverted on a red label where it would otherwise disappear.
+
+Article 9/1 requires the label to be **legible** — so contrast is a compliance
+matter, not decoration.
+
+A coloured background **survives printing**: browsers drop background colours by
+default, so `print-color-adjust: exact` asks for them explicitly. A yellow label
+printing white would make the whole colour choice pointless.
+
+<br>
+
 ## Input format
 
 One product per line, columns separated by a **tab**, **semicolon** or **pipe**:
@@ -115,7 +143,9 @@ Download `index.html` and double-click it. No dependencies, works offline.
 
 Open `index.html?test=1`. It checks the blank-versus-zero price distinction, the
 unit conversions, the discount percentage, the CSV injection guard, a CSV
-round-trip, the BOM at byte level, and every language's translation table. If
+round-trip, the BOM at byte level, the contrast maths, the guarantee that the ink keeps AA
+on every possible background (a full 256-step sweep), and every language's
+translation table. If
 one fails, the tab title becomes `HATA:`.
 
 <br>

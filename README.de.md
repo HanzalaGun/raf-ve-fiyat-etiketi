@@ -49,6 +49,36 @@ Gramm und Milliliter werden zuerst in Kilo und Liter umgerechnet:
 
 <br>
 
+## Schildfarbe
+
+Weiß, **gelb** (Aktion), **rot** (Abverkauf), grün, orange — oder Ihre eigene
+Farbe. Im Handel trägt Farbe Information, sie ist keine Dekoration.
+
+**Die Schriftfarbe wird gemessen, nicht geschätzt.** Für Schwarz und für Weiß
+wird der WCAG-Kontrast zum Hintergrund berechnet, und der höhere gewinnt — auf
+Gelb Schwarz, auf Dunkelgrün Weiß. Eine Entscheidung per Helligkeitsschwelle
+greift in den Mitteltönen zur falschen Seite.
+
+Dahinter steht eine gemessene Garantie: **welche Farbe Sie auch wählen, der
+Kontrast zwischen Schrift und Hintergrund bleibt bei mindestens 4,5:1**. Der
+schlechteste Fall liegt bei 4,59, auf `#008900` — ein vollständiger Durchlauf
+über 256 Stufen läuft in der Selbstprüfung. Liegt das angezeigte Verhältnis
+unter 7:1, sagt das Werkzeug es; dort liegt die sinnvolle Grenze für ein Schild,
+das aus einem Meter Entfernung bei wechselndem Ladenlicht gelesen wird.
+
+Das Rabattzeichen passt sich ebenfalls an: das Handelsrot bleibt, wo es geht,
+und wird auf einem roten Schild invertiert, wo es sonst verschwände.
+
+Artikel 9/1 verlangt ein **lesbares** Schild — Kontrast ist hier also eine Frage
+der Konformität, nicht der Gestaltung.
+
+Ein farbiger Hintergrund **überlebt den Druck**: Browser verwerfen
+Hintergrundfarben standardmäßig, deshalb werden sie mit
+`print-color-adjust: exact` ausdrücklich angefordert. Ein gelbes Schild, das
+weiß gedruckt wird, machte die ganze Farbwahl sinnlos.
+
+<br>
+
 ## Eingabeformat
 
 Ein Produkt je Zeile, Spalten getrennt durch **Tabulator**, **Semikolon** oder
@@ -121,7 +151,9 @@ offline.
 
 `index.html?test=1` öffnen. Geprüft werden die Unterscheidung von leerem und
 Null-Preis, die Einheitenumrechnung, der Rabattprozentsatz, der
-CSV-Injection-Schutz, ein CSV-Hin-und-Rückweg, die BOM auf Byte-Ebene und die
+CSV-Injection-Schutz, ein CSV-Hin-und-Rückweg, die BOM auf Byte-Ebene, die
+Kontrastrechnung, die Garantie, dass die Schriftfarbe auf jedem Hintergrund AA
+hält (ein vollständiger Durchlauf über 256 Stufen), und die
 Übersetzungstabellen aller fünf Sprachen. Fällt eine Prüfung durch, wird der
 Tab-Titel zu `HATA:`.
 

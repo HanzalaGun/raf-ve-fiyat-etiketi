@@ -75,6 +75,11 @@ p.arac__uyari{margin-top:12px; font-size:13px; color:var(--sc-hata)}
 .arac__dugmeler button:disabled{opacity:.4; cursor:default}
 .arac__sayi{font-family:var(--sc-font-display); font-size:12px; color:var(--sc-ink-soft);
   margin-inline-end:auto}
+.arac__renk{display:flex; gap:8px; align-items:center; margin-top:6px}
+.arac__renk input[type=color]{width:38px; height:34px; padding:2px; flex:0 0 auto; cursor:pointer}
+.arac__kontrast{font-family:var(--sc-font-display); font-size:11px; margin-top:8px;
+  color:var(--sc-ink-soft); text-transform:none; letter-spacing:0}
+.arac__kontrast[data-dusuk="1"]{color:var(--sc-hata)}
 /* Ürün listesi ve ölçüler soldan sağa: fiyat ve barkod rakamları RTL'de ters okunuyor. */
 [dir="rtl"] #ham{direction:ltr; text-align:left}
 [hidden]{display:none !important}
@@ -89,18 +94,22 @@ p.arac__uyari{margin-top:12px; font-size:13px; color:var(--sc-hata)}
 }
 .raf-etiket{
   width:var(--et-en); height:var(--et-boy);
-  border:1px dashed rgba(0,0,0,.25);
+  border:1px dashed color-mix(in srgb, var(--et-murekkep) 30%, transparent);
   padding:2.5mm 3mm; overflow:hidden;
   display:flex; flex-direction:column; justify-content:center; gap:0.6mm;
-  background:#fff; color:#111;
+  background:var(--et-zemin, #fff); color:var(--et-murekkep, #111);
   font-family:var(--sc-font-text);
+  /* Tarayıcılar baskıda zemin rengini ATIYOR. Sarı etiket sarı basılmazsa
+     aracın renk seçimi hiçbir işe yaramaz, o yüzden açıkça istiyoruz. */
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
 }
 .raf-etiket__ad{font-size:2.6mm; line-height:1.25; font-weight:600;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .raf-etiket__fiyat{font-size:7mm; font-weight:800; line-height:1; letter-spacing:-.02em}
 .raf-etiket__eski{font-size:3mm; text-decoration:line-through; opacity:.65}
 .raf-etiket__yuzde{align-self:flex-start; font-size:3mm; font-weight:800;
-  background:#c0182b; color:#fff; padding:0.4mm 1.4mm}
+  background:var(--et-rozet); color:var(--et-rozet-yazi); padding:0.4mm 1.4mm;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact}
 .raf-etiket__birim{font-size:2.7mm; opacity:.75}
 .raf-etiket__alt{font-size:2.2mm; opacity:.6; margin-top:auto}
 
@@ -152,10 +161,17 @@ p.arac__uyari{margin-top:12px; font-size:13px; color:var(--sc-hata)}
       <label><span data-t="duzen"></span><select id="duzen"></select></label>
       <label><span data-t="tabakaSec"></span><select id="tabaka"></select></label>
       <label><span data-t="tarih"></span><input id="tarih" type="date"></label>
+      <label><span data-t="renk"></span>
+        <span class="arac__renk">
+          <select id="renk"></select>
+          <input id="renkOzel" type="color" value="#ffe200">
+        </span>
+      </label>
       <label class="arac__onay"><input id="birimGoster" type="checkbox" checked> <span data-t="onayBirim"></span></label>
       <label class="arac__onay"><input id="yerGoster" type="checkbox" checked> <span data-t="onayYer"></span></label>
     </div>
 
+    <p class="arac__kontrast" id="kontrastNot"></p>
     <p class="arac__not" data-t="mevzuatNot"></p>
     <p class="arac__not" data-t="csvNot"></p>
 
@@ -199,6 +215,12 @@ const METIN = {
     "altSite": "hanzala.com.tr",
     "altAraclar": "başka ücretsiz araçlar",
     "girdiAnlat": "Ürünler — her satıra bir ürün: <b>ad · fiyat · miktar · birim · eski fiyat · üretim yeri</b> (sekme, noktalı virgül veya boru ile ayır. Birim: kg, g, L, ml, adet, m. Birim fiyatı araç kendi hesaplıyor.)",
+    "renk": "Etiket rengi",
+    "renkOzel": "Özel…",
+    "renkler": ["Beyaz", "Sarı — indirim", "Kırmızı — son fırsat", "Yeşil", "Turuncu", "Özel…"],
+    "kontrastNot": "Yazı/zemin kontrastı {oran} — {durum}",
+    "kontrastIyi": "yüksek",
+    "kontrastDusuk": "orta, uzaktan okunurluk için 7:1 ve üstü daha iyi",
     "duzen": "Düzen",
     "duzenler": [
       "Fiyat baskın",
@@ -245,6 +267,12 @@ const METIN = {
     "altSite": "hanzala.com.tr",
     "altAraclar": "more free tools",
     "girdiAnlat": "Products — one per line: <b>name · price · amount · unit · old price · place of production</b> (separate with a tab, semicolon or pipe. Units: kg, g, L, ml, adet, m. The tool works out the unit price itself.)",
+    "renk": "Label colour",
+    "renkOzel": "Custom…",
+    "renkler": ["White", "Yellow — sale", "Red — clearance", "Green", "Orange", "Custom…"],
+    "kontrastNot": "Text/background contrast {oran} — {durum}",
+    "kontrastIyi": "high",
+    "kontrastDusuk": "moderate; 7:1 or above reads better from a distance",
     "duzen": "Layout",
     "duzenler": [
       "Price first",
@@ -291,6 +319,12 @@ const METIN = {
     "altSite": "hanzala.com.tr",
     "altAraclar": "другие бесплатные инструменты",
     "girdiAnlat": "Товары — по одному в строке: <b>название · цена · количество · единица · старая цена · место производства</b> (разделяйте табуляцией, точкой с запятой или вертикальной чертой. Единицы: kg, g, L, ml, adet, m. Цену за единицу инструмент считает сам.)",
+    "renk": "Цвет ценника",
+    "renkOzel": "Свой…",
+    "renkler": ["Белый", "Жёлтый — скидка", "Красный — распродажа", "Зелёный", "Оранжевый", "Свой…"],
+    "kontrastNot": "Контраст текста и фона {oran} — {durum}",
+    "kontrastIyi": "высокий",
+    "kontrastDusuk": "средний; от 7:1 читается лучше на расстоянии",
     "duzen": "Макет",
     "duzenler": [
       "Цена крупно",
@@ -337,6 +371,12 @@ const METIN = {
     "altSite": "hanzala.com.tr",
     "altAraclar": "weitere kostenlose Werkzeuge",
     "girdiAnlat": "Produkte — eines pro Zeile: <b>Name · Preis · Menge · Einheit · alter Preis · Herstellungsort</b> (mit Tabulator, Semikolon oder senkrechtem Strich trennen. Einheiten: kg, g, L, ml, adet, m. Den Grundpreis rechnet das Werkzeug selbst.)",
+    "renk": "Schildfarbe",
+    "renkOzel": "Eigene…",
+    "renkler": ["Weiß", "Gelb — Aktion", "Rot — Abverkauf", "Grün", "Orange", "Eigene…"],
+    "kontrastNot": "Kontrast Text/Hintergrund {oran} — {durum}",
+    "kontrastIyi": "hoch",
+    "kontrastDusuk": "mittel; ab 7:1 liest sich aus der Entfernung besser",
     "duzen": "Layout",
     "duzenler": [
       "Preis groß",
@@ -383,6 +423,12 @@ const METIN = {
     "altSite": "hanzala.com.tr",
     "altAraclar": "أدوات مجانية أخرى",
     "girdiAnlat": "المنتجات — منتج في كل سطر: <b>الاسم · السعر · الكمية · الوحدة · السعر القديم · مكان الإنتاج</b> (افصل بعلامة جدولة أو فاصلة منقوطة أو شرطة رأسية. الوحدات: kg، g، L، ml، adet، m. وسعر الوحدة تحسبه الأداة بنفسها.)",
+    "renk": "لون البطاقة",
+    "renkOzel": "مخصّص…",
+    "renkler": ["أبيض", "أصفر — تخفيض", "أحمر — تصفية", "أخضر", "برتقالي", "مخصّص…"],
+    "kontrastNot": "تباين النص والخلفية {oran} — {durum}",
+    "kontrastIyi": "عالٍ",
+    "kontrastDusuk": "متوسط؛ 7:1 أو أعلى أوضح من بعيد",
     "duzen": "التخطيط",
     "duzenler": [
       "السعر بارزًا",
@@ -470,6 +516,69 @@ const OLCEK = {
 }
 
 const DUZENLER = ['fiyat', 'indirim', 'birim', 'sade']
+
+/* ---------- renk ----------
+   Etiket zemini işletmenin seçimi; yazı rengi ölçümle geliyor. Perakendede
+   sarı indirim, kırmızı son fırsat demek — renk bilgi taşıyor, süs değil.
+   Adları METIN.renkler'de, sırası bu diziyle aynı. */
+const RENKLER = ['#ffffff', '#ffe200', '#d81f26', '#0f6b2f', '#f5741f', 'ozel']
+
+/** `#rrggbb` ya da `#rgb` → [r,g,b]. Tanınmayan girdi null. */
+const hexOku = (x) => {
+  const h = String(x ?? '').trim()
+  const uzun = /^#([0-9a-fA-F]{6})$/.exec(h)
+  if (uzun) { const n = parseInt(uzun[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
+  const kisa = /^#([0-9a-fA-F]{3})$/.exec(h)
+  if (kisa) { const [a, b, c] = kisa[1].split(''); return [parseInt(a + a, 16), parseInt(b + b, 16), parseInt(c + c, 16)] }
+  return null
+}
+const kanal = (v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4 }
+
+/** sRGB bağıl parlaklık (0–1). */
+const parlaklik = (renk) => {
+  const r = hexOku(renk)
+  return r ? 0.2126 * kanal(r[0]) + 0.7152 * kanal(r[1]) + 0.0722 * kanal(r[2]) : null
+}
+
+/**
+ * WCAG kontrast oranı (1–21).
+ *
+ * Geçersiz renkte 0 dönüyor, 21 değil: eşik kontrolü `< 4.5` yazıldığı için
+ * 0 kapıyı KAPATIYOR. Ters olsaydı çöp girdi kapıyı açardı.
+ */
+const kontrast = (a, b) => {
+  const la = parlaklik(a), lb = parlaklik(b)
+  if (la === null || lb === null) return 0
+  const [y, d] = la > lb ? [la, lb] : [lb, la]
+  return (y + 0.05) / (d + 0.05)
+}
+
+/**
+ * Yazı rengi: siyah mı beyaz mı — hangisi daha çok kontrast veriyorsa.
+ * Parlaklık eşiğiyle karar vermek orta tonlarda yanlış tarafı seçiyor.
+ *
+ * Karşılaştırılan ve DÖNDÜRÜLEN renk aynı olmak zorunda. Önce karar
+ * `#000000`a bakıp `#111111` döndürüyordu; o uyuşmazlık en kötü durumu
+ * 4,14'e düşürüyordu (tarama sınaması yakaladı) çünkü `#111111` saf siyahtan
+ * daha az kontrast veriyor. Saf siyah hem garantiyi 4,58'e çıkarıyor hem de
+ * baskıda gerçekten basılan renk.
+ */
+const SIYAH = '#000000'
+const BEYAZ = '#ffffff'
+const murekkep = (zemin) =>
+  kontrast(zemin, SIYAH) >= kontrast(zemin, BEYAZ) ? SIYAH : BEYAZ
+
+/**
+ * İndirim rozeti. Perakende kırmızısı bilgi taşıyor, mümkünse korunuyor;
+ * kırmızı zeminde kaybolduğu için (kontrast 1'e yakın) orada mürekkep
+ * rengine dönüyor — o zemine göre tanım gereği kontrastlı.
+ */
+const rozetRenk = (zemin) => {
+  const KIRMIZI = '#c0182b'
+  return kontrast(zemin, KIRMIZI) >= 3
+    ? { yazi: murekkep(KIRMIZI), zemin: KIRMIZI }
+    : { yazi: zemin, zemin: murekkep(zemin) }
+}
 /** Hazır tabaka ölçüleri — barkod aracıyla aynı kâğıtlar. */
 const TABAKA = [
   { g: 70, satir: 8, sutun: 3, y: 37 },
@@ -622,6 +731,39 @@ if (new URLSearchParams(location.search).has('test')) (async () => {
   // Ayraç seçimi
   esit(ayikla('Çay\t20\t100\tg')[0].fiyat, 20, 'sekme ayracı')
   esit(ayikla('Çay,20,100,g')[0].miktar, 100, 'virgül ayracı')
+  // Kontrast: WCAG referans değerleri.
+  esit(Math.round(kontrast('#ffffff', '#000000')), 21, 'siyah-beyaz 21:1')
+  esit(kontrast('#ffffff', '#ffffff'), 1, 'aynı renk 1:1')
+  esit(kontrast('#zzzzzz', '#000000'), 0, 'geçersiz renk kapıyı kapatıyor')
+  esit(hexOku('#fff'), [255, 255, 255], 'kısa hex okunuyor')
+  // Mürekkep seçimi: eşik değil ölçüm. Sarı ve beyaz siyah yazı, koyu
+  // kırmızı ve yeşil beyaz yazı istiyor.
+  esit(murekkep('#ffffff'), SIYAH, 'beyaz zeminde siyah yazı')
+  esit(murekkep('#ffe200'), SIYAH, 'sarı zeminde siyah yazı')
+  esit(murekkep('#d81f26'), BEYAZ, 'kırmızı zeminde beyaz yazı')
+  esit(murekkep('#0f6b2f'), BEYAZ, 'yeşil zeminde beyaz yazı')
+  esit(murekkep('#000000'), BEYAZ, 'siyah zeminde beyaz yazı')
+  // Seçilebilir her zeminde yazı WCAG AA eşiğini (4,5) geçmeli.
+  RENKLER.filter((r) => r !== 'ozel').forEach((z) =>
+    esit(kontrast(z, murekkep(z)) >= 4.5, true, z + ' zemininde AA kontrast'))
+  /* Asıl garanti: KULLANICI NE SEÇERSE SEÇSİN mürekkep AA'yı tutuyor. Siyah ve
+     beyaz kontrast eğrileri L≈0,179'da kesişiyor ve orada bile oran 4,58.
+     Gri ekseni ve doymuş renkleri tarayıp en kötü durumu ölçüyoruz. */
+  let enKotu = 21
+  for (let v = 0; v <= 255; v += 3) {
+    const griler = [[v, v, v], [v, 0, 0], [0, v, 0], [0, 0, v], [v, v, 0], [0, v, v], [v, 0, v]]
+    for (const [r, g, b] of griler) {
+      const z = '#' + [r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')
+      enKotu = Math.min(enKotu, kontrast(z, murekkep(z)))
+    }
+  }
+  esit(enKotu >= 4.5, true, 'her zeminde AA garantili (en kötü ' + enKotu.toFixed(2) + ')')
+  // Rozet: kırmızı korunabiliyorsa korunuyor, kırmızı zeminde kayboluyorsa dönüyor.
+  esit(rozetRenk('#ffffff').zemin, '#c0182b', 'beyaz zeminde rozet kırmızı kalıyor')
+  esit(rozetRenk('#ffe200').zemin, '#c0182b', 'sarı zeminde rozet kırmızı kalıyor')
+  esit(rozetRenk('#d81f26').zemin, '#ffffff', 'kırmızı zeminde rozet mürekkebe dönüyor')
+  esit(kontrast(rozetRenk('#d81f26').zemin, rozetRenk('#d81f26').yazi) >= 3, true,
+       'dönen rozet de okunuyor')
   esit(dilCoz('de'), 'de', 'bilinen dil')
   esit(dilCoz('fr'), 'tr', 'bilinmeyen dil Türkçeye düşüyor')
   const anahtar = Object.keys(METIN.tr).sort()
@@ -629,6 +771,7 @@ if (new URLSearchParams(location.search).has('test')) (async () => {
     esit(Object.keys(METIN[d]).sort(), anahtar, d + ' anahtarları tam')
     esit(METIN[d].duzenler.length, DUZENLER.length, d + ' düzen adları tam')
     esit(METIN[d].csvBasliklar.length, 6, d + ' CSV başlıkları tam')
+    esit(METIN[d].renkler.length, RENKLER.length, d + ' renk adları tam')
   })
   // BOM bayt düzeyinde: EF BB BF olmadan Excel UTF-8'i tanımıyor ve
   // "Zeytinyağı" -> "ZeytinyaÄŸÄ±" oluyor. Blob'u okuyup ilk üç baytı ölçüyoruz.
@@ -656,6 +799,7 @@ const ORNEK =
 
 $('duzen').innerHTML = DUZENLER.map((d) => `<option value="${d}"></option>`).join('')
 $('tabaka').innerHTML = TABAKA.map((_, i) => `<option value="${i}"></option>`).join('')
+$('renk').innerHTML = RENKLER.map((r, i) => `<option value="${i}"></option>`).join('')
 
 DILLER.forEach((d) => {
   const b = document.createElement('button')
@@ -690,6 +834,7 @@ function uygulaDil() {
     const x = TABAKA[i]
     o.textContent = doldur(m.tabakaAd, { g: olcu(x.g), y: olcu(x.y), n: x.sutun * x.satir })
   })
+  $('renk').querySelectorAll('option').forEach((o, i) => { o.textContent = m.renkler[i] })
   $('diller').querySelectorAll('button')
     .forEach((b, i) => b.setAttribute('aria-pressed', String(DILLER[i] === dil)))
 
@@ -701,6 +846,15 @@ function uygulaDil() {
   const u = new URL(location.href)
   dil === 'tr' ? u.searchParams.delete('dil') : u.searchParams.set('dil', dil)
   history.replaceState(null, '', u)
+}
+
+/** Seçili zemin: hazır renklerden biri ya da özel seçicinin değeri. */
+function zeminSec() {
+  const i = Number($('renk').value) || 0
+  const r = RENKLER[i]
+  const ozel = r === 'ozel'
+  $('renkOzel').hidden = !ozel
+  return ozel ? $('renkOzel').value : r
 }
 
 function ciz() {
@@ -743,6 +897,25 @@ function ciz() {
   $('onizlemeNot').hidden = !(etiketler.length > ONIZLEME && !hepsiniGoster)
   $('onizlemeNot').textContent = doldur(m.onizlemeNot, { o: ONIZLEME, n: etiketler.length })
 
+  const zemin = zeminSec()
+  const ink = murekkep(zemin)
+  const rozet = rozetRenk(zemin)
+  const oran = kontrast(zemin, ink)
+  /* Eşik 7, 4,5 değil. Siyah/beyaz mürekkep seçimi kontrastı zaten 4,58'in
+     altına düşüremiyor (iki eğrinin kesiştiği yer L≈0,179), yani AA eşiğine
+     bağlı bir uyarı hiç çalışmayan ölü koddu. Rafta bir metre uzaktan,
+     değişken market ışığında okunan bir etiket için anlamlı ayrım 7:1. */
+  const yeterli = oran >= 7
+  $('kontrastNot').textContent = doldur(m.kontrastNot, {
+    oran: oran.toFixed(2).replace('.', dil === 'en' ? '.' : ','),
+    durum: yeterli ? m.kontrastIyi : m.kontrastDusuk,
+  })
+  $('kontrastNot').dataset.dusuk = yeterli ? '0' : '1'
+
+  kutu.style.setProperty('--et-zemin', zemin)
+  kutu.style.setProperty('--et-murekkep', ink)
+  kutu.style.setProperty('--et-rozet', rozet.zemin)
+  kutu.style.setProperty('--et-rozet-yazi', rozet.yazi)
   kutu.style.setProperty('--et-en', tabaka.g + 'mm')
   kutu.style.setProperty('--et-boy', tabaka.y + 'mm')
   kutu.style.setProperty('--et-sutun', String(tabaka.sutun))
@@ -795,7 +968,7 @@ $('dosya').onchange = async (e) => {
 $('hepsi').onclick = () => { hepsiniGoster = !hepsiniGoster; ciz() }
 $('yazdir').onclick = () => window.print()
 ham.addEventListener('input', () => { hamDokunuldu = true; kirli = true })
-document.querySelectorAll('#ham, #duzen, #tabaka, #tarih, #birimGoster, #yerGoster')
+document.querySelectorAll('#ham, #duzen, #tabaka, #tarih, #birimGoster, #yerGoster, #renk, #renkOzel')
   .forEach((e) => e.addEventListener('input', ciz))
 
 uygulaDil()
